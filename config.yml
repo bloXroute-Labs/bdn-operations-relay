@@ -1,0 +1,6 @@
+log-level: debug
+http-port: 9080
+ws-port: 9081
+bdn:
+  ws-url: ws://localhost:28335/ws
+  grpc-url: grpc://localhost:50052

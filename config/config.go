@@ -24,7 +24,6 @@ const (
 type Config struct {
 	LogLevel         string    `mapstructure:"log-level"`
 	HTTPPort         int       `mapstructure:"http-port"`
-	WSPort           string    `mapstructure:"ws-port"`
 	BDN              BDNConfig `mapstructure:"bdn"`
 	DAppPrivateKey   string    `mapstructure:"dapp-private-key"`
 	SolverPrivateKey string    `mapstructure:"solver-private-key"`

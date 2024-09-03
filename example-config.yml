@@ -1,6 +1,5 @@
 log-level: debug
 http-port: 9080
-ws-port: 9081
 bdn:
   ws-url: ws://3.214.101.39:28334/ws
   auth-header: "BDN-Auth-Header"

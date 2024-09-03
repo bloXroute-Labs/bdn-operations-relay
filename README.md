@@ -17,5 +17,5 @@ To run the service using docker, you can use the following command:
 
 ```bash
 docker build -t bloxroute/bdn-operations-relay:v0.0.1 .
-docker run bloxroute/bdn-operations-relay:v0.0.1 --config=config.yml
+docker run bloxroute/bdn-operations-relay:v0.0.1 -p 9080:9080 --config=config.yml
 ```

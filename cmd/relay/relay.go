@@ -22,7 +22,6 @@ func init() {
 	fl.String("config", "", "path to config file")
 	fl.String("log-level", "info", "log level")
 	fl.Int("http-port", 8080, "http port")
-	fl.String("ws-port", "8081", "ws port")
 	fl.String("bdn.ws-url", "ws://localhost:28333/ws", "BDN WebSocket URL")
 	fl.String("bdn.grpc-url", "grpc://localhost:50051", "BDN gRPC URL")
 	fl.String("bdn.auth-header", "", "BDN auth header")

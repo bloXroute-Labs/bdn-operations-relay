@@ -7,7 +7,6 @@ BDN operations relay is a service that binds Atlas and BDN.
 
 <img src="static/diagram.svg" width="1024">
 
-
 ## Running the service
 
 To run the service, you need to set values into the `config.yaml` file. 

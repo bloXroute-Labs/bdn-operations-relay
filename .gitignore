@@ -28,3 +28,4 @@ go\.work
 go\.work\.sum
 
 vendor/
+config.yml

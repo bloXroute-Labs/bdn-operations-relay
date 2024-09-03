@@ -62,7 +62,7 @@ func (s *Server) Shutdown() {
 
 	logger.Info("stopping HTTP server")
 
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
 	err := s.server.Shutdown(shutdownCtx)

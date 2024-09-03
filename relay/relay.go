@@ -26,7 +26,9 @@ func Run(cfg *config.Config) error {
 		return s.Start()
 	})
 
-	defer s.Shutdown()
+	<-gCtx.Done()
+
+	s.Shutdown()
 
 	return eg.Wait()
 }

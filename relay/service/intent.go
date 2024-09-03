@@ -15,7 +15,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/bloXroute-Labs/bdn-operations-relay/config"
-	"github.com/bloXroute-Labs/bdn-operations-relay/log"
+	"github.com/bloXroute-Labs/bdn-operations-relay/logger"
 )
 
 // Intent is a service for interacting with the BDN intent network
@@ -124,7 +124,7 @@ func (i *Intent) GetIntentSolutions(ctx context.Context, intentID string) ([]ope
 		var solverOperation operation.SolverOperationRaw
 		err = json.Unmarshal(intentSolution, &solverOperation) // TODO use var p fastjson.Parser
 		if err != nil {
-			log.Error("failed to unmarshal intent solution into SolverOperationRaw", "error", err,
+			logger.Error("failed to unmarshal intent solution into SolverOperationRaw", "error", err,
 				"intent_solution", string(intentSolution))
 			continue
 		}

@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/bloXroute-Labs/bdn-operations-relay/config"
-	"github.com/bloXroute-Labs/bdn-operations-relay/log"
+	"github.com/bloXroute-Labs/bdn-operations-relay/logger"
 	"github.com/bloXroute-Labs/bdn-operations-relay/relay"
 )
 
@@ -42,7 +42,7 @@ func runRelay(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	log.InitLogger(cfg.LogLevel)
+	logger.InitLogger(cfg.LogLevel)
 
 	return relay.Run(cfg)
 }

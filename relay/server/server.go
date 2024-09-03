@@ -11,7 +11,7 @@ import (
 	"github.com/go-playground/validator/v10"
 
 	"github.com/bloXroute-Labs/bdn-operations-relay/config"
-	"github.com/bloXroute-Labs/bdn-operations-relay/log"
+	"github.com/bloXroute-Labs/bdn-operations-relay/logger"
 	"github.com/bloXroute-Labs/bdn-operations-relay/relay/service"
 )
 
@@ -42,7 +42,7 @@ func (s *Server) Start() error {
 		ReadHeaderTimeout: time.Second * 5,
 	}
 
-	log.Info("starting HTTP server", "address", s.server.Addr)
+	logger.Info("starting HTTP server", "address", s.server.Addr)
 	s.server.Handler = s.setupHandlers()
 
 	err := s.server.ListenAndServe()
@@ -56,7 +56,7 @@ func (s *Server) Start() error {
 // Shutdown stops the HTTP server
 func (s *Server) Shutdown() {
 	if s.server == nil {
-		log.Warn("stopping http server that was not initialized")
+		logger.Warn("stopping http server that was not initialized")
 		return
 	}
 
@@ -65,19 +65,19 @@ func (s *Server) Shutdown() {
 
 	err := s.server.Shutdown(shutdownCtx)
 	if err != nil {
-		log.Error("failed to shutdown http server", "error", err)
+		logger.Error("failed to shutdown http server", "error", err)
 	}
 }
 
 func writeResponseData(w http.ResponseWriter, data interface{}) {
 	b, err := json.Marshal(data)
 	if err != nil {
-		log.Error("failed to marshal response data", "error", err)
+		logger.Error("failed to marshal response data", "error", err)
 
 		w.WriteHeader(http.StatusInternalServerError)
 		_, err = w.Write([]byte(err.Error()))
 		if err != nil {
-			log.Error("failed to write response", "error", err)
+			logger.Error("failed to write response", "error", err)
 		}
 		return
 	}
@@ -85,7 +85,7 @@ func writeResponseData(w http.ResponseWriter, data interface{}) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	_, err = w.Write(b)
 	if err != nil {
-		log.Error("failed to write response", "error", err)
+		logger.Error("failed to write response", "error", err)
 	}
 }
 

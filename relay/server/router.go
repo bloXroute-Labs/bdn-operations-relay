@@ -7,7 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/bloXroute-Labs/bdn-operations-relay/log"
+	"github.com/bloXroute-Labs/bdn-operations-relay/logger"
 )
 
 type route struct {
@@ -24,7 +24,7 @@ func (s *Server) setupHandlers() *mux.Router {
 			start := time.Now()
 			w.Header().Set("Access-Control-Allow-Origin", "*")
 			inner.ServeHTTP(w, r)
-			log.Info(fmt.Sprintf("served %s", name), "method", r.Method, "url", r.RequestURI, "duration", time.Since(start))
+			logger.Info(fmt.Sprintf("served %s", name), "method", r.Method, "url", r.RequestURI, "duration", time.Since(start))
 		})
 	}
 

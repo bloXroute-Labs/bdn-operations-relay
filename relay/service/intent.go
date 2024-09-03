@@ -62,10 +62,10 @@ func (i *Intent) Close() error {
 }
 
 // SubmitIntent submits an intent to the BDN
-func (i *Intent) SubmitIntent(ctx context.Context, userOp *operation.UserOperationPartialRaw) error {
+func (i *Intent) SubmitIntent(ctx context.Context, userOp *operation.UserOperationPartialRaw) (string, error) {
 	intent, err := json.Marshal(userOp)
 	if err != nil {
-		return fmt.Errorf("failed to marshal user operation: %w", err)
+		return "", fmt.Errorf("failed to marshal user operation: %w", err)
 	}
 
 	params := &sdk.SubmitIntentParams{
@@ -74,12 +74,18 @@ func (i *Intent) SubmitIntent(ctx context.Context, userOp *operation.UserOperati
 		Intent:           intent,
 	}
 
-	_, err = i.client.SubmitIntent(ctx, params)
+	resp, err := i.client.SubmitIntent(ctx, params)
 	if err != nil {
-		return fmt.Errorf("failed to submit intent: %w", err)
+		return "", fmt.Errorf("failed to submit intent: %w", err)
 	}
 
-	return nil
+	var p fastjson.Parser
+	v, err := p.ParseBytes(*resp)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return string(v.GetStringBytes("intent_id")), nil
 }
 
 // SubmitIntentSolution submits an intent solution to the BDN

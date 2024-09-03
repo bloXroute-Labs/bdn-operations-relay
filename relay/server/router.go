@@ -55,6 +55,10 @@ func (s *Server) buildRoutes() []route {
 		routes = append(routes, s.dAppRoutes()...)
 	}
 
+	if s.cfg.SolverPrivateKey != "" {
+		routes = append(routes, s.solverRoutes()...)
+	}
+
 	return routes
 }
 
@@ -73,4 +77,13 @@ func (s *Server) dAppRoutes() []route {
 			handlerFunc: s.solverOperations,
 		},
 	}
+}
+
+func (s *Server) solverRoutes() []route {
+	return []route{{
+		"WebsocketSolver",
+		http.MethodGet,
+		"/ws/solver",
+		s.websocketSolver,
+	}}
 }

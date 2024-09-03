@@ -6,6 +6,8 @@ import (
 	"syscall"
 
 	"github.com/bloXroute-Labs/bdn-operations-relay/config"
+	"github.com/bloXroute-Labs/bdn-operations-relay/relay/server"
+
 	"golang.org/x/sync/errgroup"
 )
 
@@ -14,6 +16,17 @@ func Run(cfg *config.Config) error {
 	defer stop()
 
 	eg, gCtx := errgroup.WithContext(ctx)
+
+	s, err := server.NewServer(gCtx, cfg)
+	if err != nil {
+		return err
+	}
+
+	eg.Go(func() error {
+		return s.Start()
+	})
+
+	defer s.Shutdown()
 
 	return eg.Wait()
 }

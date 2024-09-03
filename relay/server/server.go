@@ -60,12 +60,21 @@ func (s *Server) Shutdown() {
 		return
 	}
 
+	logger.Info("stopping HTTP server")
+
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	err := s.server.Shutdown(shutdownCtx)
 	if err != nil {
 		logger.Error("failed to shutdown http server", "error", err)
+	}
+
+	logger.Info("closing intent service")
+
+	err = s.intentService.Close()
+	if err != nil {
+		logger.Error("failed to close intent service", "error", err)
 	}
 }
 

@@ -10,16 +10,31 @@ import (
 	"github.com/spf13/viper"
 )
 
-const envPrefix = "BDN_OPS_RELAY"
+var (
+	ErrBDNURLRequired        = fmt.Errorf("either BDN WS or BDN gRPC URL is required")
+	ErrBDNAuthHeaderRequired = fmt.Errorf("BDN auth header is required")
+	ErrPrivateKeyRequired    = fmt.Errorf("either dApp or solver private key is required")
+	ErrDAppAddressRequired   = fmt.Errorf("dApp address is required when solver private key is provided")
+)
+
+const (
+	envPrefix = "BDN_OPS_RELAY"
+)
 
 type Config struct {
-	LogLevel string `mapstructure:"log-level"`
-	HTTPPort int    `mapstructure:"http-port"`
-	WSPort   string `mapstructure:"ws-port"`
-	BDN      struct {
-		WSURL   string `mapstructure:"ws-url"`
-		GRPCURL string `mapstructure:"grpc-url"`
-	} `mapstructure:"bdn"`
+	LogLevel         string    `mapstructure:"log-level"`
+	HTTPPort         int       `mapstructure:"http-port"`
+	WSPort           string    `mapstructure:"ws-port"`
+	BDN              BDNConfig `mapstructure:"bdn"`
+	DAppPrivateKey   string    `mapstructure:"dapp-private-key"`
+	SolverPrivateKey string    `mapstructure:"solver-private-key"`
+	DAppAddress      string    `mapstructure:"dapp-address"`
+}
+
+type BDNConfig struct {
+	WSURL      string `mapstructure:"ws-url"`
+	GRPCURL    string `mapstructure:"grpc-url"`
+	AuthHeader string `mapstructure:"auth-header"`
 }
 
 func Read(vip *viper.Viper) (*Config, error) {
@@ -28,6 +43,11 @@ func Read(vip *viper.Viper) (*Config, error) {
 	err := vip.Unmarshal(&cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	err = validate(&cfg)
+	if err != nil {
+		return nil, fmt.Errorf("invalid config: %w", err)
 	}
 
 	return &cfg, nil
@@ -85,4 +105,24 @@ func hasSupportedConfigExtension(configExt string) bool {
 	}
 
 	return false
+}
+
+func validate(cfg *Config) error {
+	if cfg.BDN.WSURL == "" && cfg.BDN.GRPCURL == "" {
+		return ErrBDNURLRequired
+	}
+
+	if cfg.BDN.AuthHeader == "" {
+		return ErrBDNAuthHeaderRequired
+	}
+
+	if cfg.DAppPrivateKey == "" && cfg.SolverPrivateKey == "" {
+		return ErrPrivateKeyRequired
+	}
+
+	if cfg.SolverPrivateKey != "" && cfg.DAppAddress == "" {
+		return ErrDAppAddressRequired
+	}
+
+	return nil
 }

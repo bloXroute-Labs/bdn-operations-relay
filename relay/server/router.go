@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/bloXroute-Labs/bdn-operations-relay/log"
 	"github.com/gorilla/mux"
+
+	"github.com/bloXroute-Labs/bdn-operations-relay/log"
 )
 
 type route struct {
@@ -27,7 +28,7 @@ func (s *Server) setupHandlers() *mux.Router {
 		})
 	}
 
-	for _, r := range buildRoutes(s) {
+	for _, r := range s.buildRoutes() {
 		var handler http.Handler = r.handlerFunc
 		handler = logger(handler, r.name)
 
@@ -40,14 +41,25 @@ func (s *Server) setupHandlers() *mux.Router {
 	return router
 }
 
-func buildRoutes(s *Server) []route {
-	return []route{
+func (s *Server) buildRoutes() []route {
+	routes := []route{
 		{
 			name:        "Ping",
 			method:      http.MethodGet,
 			pattern:     "/ping",
 			handlerFunc: s.ping,
 		},
+	}
+
+	if s.cfg.DAppPrivateKey != "" {
+		routes = append(routes, s.dAppRoutes()...)
+	}
+
+	return routes
+}
+
+func (s *Server) dAppRoutes() []route {
+	return []route{
 		{
 			name:        "SubmitUserOperation",
 			method:      http.MethodPost,

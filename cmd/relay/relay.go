@@ -1,11 +1,12 @@
 package main
 
 import (
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/bloXroute-Labs/bdn-operations-relay/config"
 	"github.com/bloXroute-Labs/bdn-operations-relay/log"
 	"github.com/bloXroute-Labs/bdn-operations-relay/relay"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var relayCmd = &cobra.Command{
@@ -24,6 +25,10 @@ func init() {
 	fl.String("ws-port", "8081", "ws port")
 	fl.String("bdn.ws-url", "ws://localhost:28333/ws", "BDN WebSocket URL")
 	fl.String("bdn.grpc-url", "grpc://localhost:50051", "BDN gRPC URL")
+	fl.String("bdn.auth-header", "", "BDN auth header")
+	fl.String("dapp-private-key", "", "DApp private key")
+	fl.String("solver-private-key", "", "Solver private key")
+	fl.String("dapp-address", "", "DApp address")
 
 	err := viper.BindPFlags(fl)
 	if err != nil {

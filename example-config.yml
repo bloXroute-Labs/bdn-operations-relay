@@ -3,6 +3,6 @@ http-port: 9080
 bdn:
   ws-url: ws://3.214.101.39:28334/ws
   auth-header: "BDN-Auth-Header"
-dapp-private-key: "76f0f9a5c0eba45ad8c6715791186b21fca363ce293b965199326fe4e56f1939"
-dapp-address: "0x1FC2f1eBB5eb61b0707e65ad0AA572dfEa6ebe5c"
-solver-private-key: "2691116ce9be18c471e85d82c49c5919aed0723095f7310cc58df0cd803ca838"
+dapp-private-key: "private-key"
+dapp-address: "address"
+solver-private-key: "private-key"

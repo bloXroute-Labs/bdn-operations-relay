@@ -27,15 +27,14 @@ type Intent struct {
 // NewIntent creates a new Intent service
 func NewIntent(ctx context.Context, cfg *config.Config) (*Intent, error) {
 	sdkConfig := &sdk.Config{
-		AuthHeader:     cfg.BDN.AuthHeader,
-		WSGatewayURL:   cfg.BDN.WSURL,
-		GRPCGatewayURL: cfg.BDN.GRPCURL,
+		AuthHeader: cfg.BDN.AuthHeader,
 	}
 
 	if cfg.BDN.GRPCURL != "" {
 		sdkConfig.GRPCDialOptions = []grpc.DialOption{
 			grpc.WithTransportCredentials(credentials.NewClientTLSFromCert(nil, "")),
 		}
+		sdkConfig.GRPCGatewayURL = cfg.BDN.GRPCURL
 	} else {
 		sdkConfig.WSDialOptions = &ws.DialOptions{
 			TLSClientConfig: &tls.Config{
@@ -43,6 +42,7 @@ func NewIntent(ctx context.Context, cfg *config.Config) (*Intent, error) {
 			},
 			HandshakeTimeout: time.Minute,
 		}
+		sdkConfig.WSGatewayURL = cfg.BDN.WSURL
 	}
 
 	client, err := sdk.NewClient(ctx, sdkConfig)

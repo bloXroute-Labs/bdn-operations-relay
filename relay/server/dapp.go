@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
-	var userOperation *operation.UserOperationWithHintsRaw
+	var userOperation operation.UserOperationWithHintsRaw
 	err := parseRequest(r, &userOperation)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

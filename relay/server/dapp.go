@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/FastLane-Labs/atlas-sdk-go/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +26,7 @@ func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
 
 	intentID, err := s.intentService.SubmitIntent(r.Context(), partialOperation)
 	if err != nil {
+		log.Error("failed to submit intent", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
@@ -46,6 +48,7 @@ func (s *Server) solverOperations(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := s.intentService.GetIntentSolutions(r.Context(), intentID)
 	if err != nil {
+		log.Error("failed to get intent solutions", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return

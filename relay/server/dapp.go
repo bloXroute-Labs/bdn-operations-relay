@@ -8,7 +8,7 @@ import (
 )
 
 func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
-	var req *types.UserOperationWithHintsRaw
+	var req types.UserOperationWithHintsRaw
 	err := parseRequest(r, &req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -39,10 +39,10 @@ func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) solverOperations(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
-	intentID := q.Get("intentID")
+	intentID := q.Get("intent_id")
 	if intentID == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("intentID is required"))
+		w.Write([]byte("intent_id is required"))
 		return
 	}
 

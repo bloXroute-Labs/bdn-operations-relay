@@ -12,10 +12,8 @@ RUN go mod download
 COPY . .
 
 CMD find .
-RUN ls -la
-
 # Build the Go application
-RUN go build -o bdn-operaions-realy ./cmd/...
+RUN CGO_ENABLED=0 go build -o bdn-operaions-realy ./cmd/...
 
 # Stage 2: Final stage
 FROM alpine:edge
@@ -25,7 +23,6 @@ WORKDIR /app
 
 # Copy the binary from the build stage
 COPY --from=build /app/bdn-operaions-realy .
-COPY --from=build /app/config.yml .
 
 # Set the entrypoint command
 ENTRYPOINT ["/app/bdn-operaions-realy", "relay"]

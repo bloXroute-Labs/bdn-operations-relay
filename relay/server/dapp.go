@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/FastLane-Labs/atlas-sdk-go/types"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
@@ -36,21 +37,18 @@ func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-type solverOperationsRequest struct {
-	IntentID string `json:"intent_id"`
-}
-
 func (s *Server) solverOperations(w http.ResponseWriter, r *http.Request) {
-	var req solverOperationsRequest
-	err := parseRequest(r, &req)
-	if err != nil {
+	intentID := r.URL.Query().Get("intent_id")
+	if intentID == "" {
+		log.Error("missing intent_id")
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		w.Write([]byte("missing intent_id"))
 		return
 	}
 
-	resp, err := s.intentService.GetIntentSolutions(r.Context(), req.IntentID)
+	resp, err := s.intentService.GetIntentSolutions(r.Context(), intentID)
 	if err != nil {
+		log.Error("failed to get intent solutions", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return

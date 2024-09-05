@@ -27,7 +27,9 @@ func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeResponseData(w, `{"intent_id": "`+intentID+`"}`)
+	writeResponseData(w, map[string]string{
+		"intent_id": intentID,
+	})
 }
 
 type solverOperationsRequest struct {

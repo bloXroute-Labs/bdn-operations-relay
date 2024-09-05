@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/FastLane-Labs/atlas-operations-relay/operation"
+	"github.com/FastLane-Labs/atlas-sdk-go/types"
 	sdk "github.com/bloXroute-Labs/bloxroute-sdk-go"
 	"github.com/bloXroute-Labs/bloxroute-sdk-go/connection/ws"
 	"github.com/valyala/fastjson"
@@ -62,7 +62,7 @@ func (i *Intent) Close() error {
 }
 
 // SubmitIntent submits an intent to the BDN
-func (i *Intent) SubmitIntent(ctx context.Context, userOp *operation.UserOperationPartialRaw) (string, error) {
+func (i *Intent) SubmitIntent(ctx context.Context, userOp *types.UserOperationPartialRaw) (string, error) {
 	intent, err := json.Marshal(userOp)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal user operation: %w", err)
@@ -105,7 +105,7 @@ func (i *Intent) SubmitIntentSolution(ctx context.Context, intentID string, inte
 }
 
 // GetIntentSolutions gets list of solutions for a specific intent
-func (i *Intent) GetIntentSolutions(ctx context.Context, intentID string) ([]operation.SolverOperationRaw, error) {
+func (i *Intent) GetIntentSolutions(ctx context.Context, intentID string) ([]types.SolverOperationRaw, error) {
 	params := &sdk.GetSolutionsForIntentParams{
 		DAppOrSenderPrivateKey: i.cfg.DAppPrivateKey,
 		IntentID:               intentID,
@@ -122,12 +122,12 @@ func (i *Intent) GetIntentSolutions(ctx context.Context, intentID string) ([]ope
 		return nil, fmt.Errorf("failed to parse message: %w", err)
 	}
 
-	var result []operation.SolverOperationRaw
+	var result []types.SolverOperationRaw
 
 	for _, obj := range v.GetArray() {
 		intentSolution := obj.Get("intent_solution").GetStringBytes()
 
-		var solverOperation operation.SolverOperationRaw
+		var solverOperation types.SolverOperationRaw
 		err = json.Unmarshal(intentSolution, &solverOperation) // TODO use var p fastjson.Parser
 		if err != nil {
 			logger.Error("failed to unmarshal intent solution into SolverOperationRaw", "error", err,

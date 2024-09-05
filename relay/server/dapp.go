@@ -3,12 +3,11 @@ package server
 import (
 	"net/http"
 
-	"github.com/FastLane-Labs/atlas-operations-relay/operation"
-	"github.com/ethereum/go-ethereum/common"
+	"github.com/FastLane-Labs/atlas-sdk-go/types"
 )
 
 func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
-	var userOperation operation.UserOperationWithHintsRaw
+	var userOperation types.UserOperationWithHintsRaw
 	err := parseRequest(r, &userOperation)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -16,9 +15,14 @@ func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userOp, hints := userOperation.Decode()
+	chainId, userOp, hints := userOperation.Decode()
 
-	partialOperation := operation.NewUserOperationPartialRaw(common.Hash{}, userOp, hints) // TODO hash
+	partialOperation, err := types.NewUserOperationPartialRaw(chainId, userOp, hints)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
 
 	intentID, err := s.intentService.SubmitIntent(r.Context(), partialOperation)
 	if err != nil {

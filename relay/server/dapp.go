@@ -4,23 +4,25 @@ import (
 	"net/http"
 
 	"github.com/FastLane-Labs/atlas-sdk-go/types"
-	"github.com/ethereum/go-ethereum/log"
 )
 
+type userOperationRequest struct {
+	UserOperation *types.UserOperationWithHintsRaw `json:"userOperation"`
+}
+
 func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
-	var userOperation types.UserOperationWithHintsRaw
-	err := parseRequest(r, &userOperation)
+	var req userOperationRequest
+	err := parseRequest(r, &req)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	chainId, userOp, hints := userOperation.Decode()
-
-	partialOperation, err := types.NewUserOperationPartialRaw(chainId, userOp, hints)
+	chainID, userOp, hints := req.UserOperation.Decode()
+	partialOperation, err := types.NewUserOperationPartialRaw(chainID, userOp, hints)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
@@ -32,23 +34,14 @@ func (s *Server) userOperation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	writeResponseData(w, map[string]string{
-		"intent_id": intentID,
-	})
+	writeResponseData(w, `{"intent_id": "`+intentID+`"}`)
 }
 
 func (s *Server) solverOperations(w http.ResponseWriter, r *http.Request) {
-	intentID := r.URL.Query().Get("intent_id")
-	if intentID == "" {
-		log.Error("missing intent_id")
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("missing intent_id"))
-		return
-	}
+	q := r.URL.Query()
 
-	resp, err := s.intentService.GetIntentSolutions(r.Context(), intentID)
+	resp, err := s.intentService.GetIntentSolutions(r.Context(), q.Get("intentID"))
 	if err != nil {
-		log.Error("failed to get intent solutions", "error", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return

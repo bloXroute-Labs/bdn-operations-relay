@@ -6,6 +6,7 @@ import (
 	sdk "github.com/bloXroute-Labs/bloxroute-sdk-go"
 	"github.com/cornelk/hashmap"
 	"github.com/google/uuid"
+	"github.com/sourcegraph/jsonrpc2"
 
 	"github.com/bloXroute-Labs/bdn-operations-relay/logger"
 )
@@ -20,12 +21,17 @@ var (
 	validSubscriptionTypes = map[SubscriptionType]struct{}{
 		SubscriptionTypeIntent: {},
 	}
+
+	validSubscriptionTypeList = []SubscriptionType{
+		SubscriptionTypeIntent,
+	}
 )
 
 type Subscription struct {
 	ID                  string
 	NotificationChannel chan interface{}
 	Type                SubscriptionType
+	conn                *jsonrpc2.Conn
 }
 
 type SubscriptionType string
@@ -40,17 +46,17 @@ func NewSubscriptionManager() *SubscriptionManager {
 	}
 }
 
-func (s *SubscriptionManager) Subscribe(remoteAddress string, subscriptionType SubscriptionType) (*Subscription, error) {
+func (s *SubscriptionManager) Subscribe(remoteAddress string, subscriptionType SubscriptionType, conn *jsonrpc2.Conn) (*Subscription, error) {
 	_, valid := validSubscriptionTypes[subscriptionType]
 	if !valid {
-		return nil, fmt.Errorf("invalid subscription type: %s", subscriptionType)
+		return nil, fmt.Errorf("invalid 'subscription_type' param: '%s', valid values are: %v", subscriptionType, validSubscriptionTypeList)
 	}
 
 	subs, exists := s.intentsSubscriptions.Get(remoteAddress)
 	if exists {
 		for i := range subs {
 			if subs[i].Type == subscriptionType {
-				return nil, fmt.Errorf("subscription already exists for type: %s", subscriptionType)
+				return nil, fmt.Errorf("subscription already exists for type: %s, id: %s", subscriptionType, subs[i].ID)
 			}
 		}
 	}
@@ -59,6 +65,7 @@ func (s *SubscriptionManager) Subscribe(remoteAddress string, subscriptionType S
 		ID:                  uuid.New().String(),
 		NotificationChannel: make(chan interface{}, notificationChannelSize),
 		Type:                subscriptionType,
+		conn:                conn,
 	}
 	subs = append(subs, sub)
 	s.intentsSubscriptions.Set(remoteAddress, subs)
@@ -71,6 +78,7 @@ func (s *SubscriptionManager) Unsubscribe(remoteAddress, subscriptionID string) 
 	subs, _ := s.intentsSubscriptions.Get(remoteAddress)
 	for i := range subs {
 		if subs[i].ID == subscriptionID {
+			fmt.Println("closing channel")
 			close(subs[i].NotificationChannel)
 			subs = append(subs[:i], subs[i+1:]...)
 			exists = true
@@ -114,7 +122,7 @@ func (s *SubscriptionManager) Notify(n interface{}) {
 func (s *SubscriptionManager) Close() {
 	s.intentsSubscriptions.Range(func(key string, value []Subscription) bool {
 		for _, subscription := range value {
-			close(subscription.NotificationChannel)
+			_ = subscription.conn.Close()
 		}
 		return true
 	})

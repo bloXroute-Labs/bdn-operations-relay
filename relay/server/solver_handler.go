@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ethereum/go-ethereum/log"
 	"github.com/sourcegraph/jsonrpc2"
 	"github.com/valyala/fastjson"
 
@@ -43,7 +44,7 @@ func (h *wsConnHandler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *js
 	case methodUnsubscribe:
 		h.handleUnsubscribe(ctx, conn, req)
 	case methodSubmitSolverOperation:
-		h.handleSubmitIntentSolution(ctx, conn, req)
+		h.handleSubmitSolverOperation(ctx, conn, req)
 	default:
 		h.sendErrorMsg(ctx, jsonrpc2.CodeMethodNotFound, "unsupported method name: "+method, conn, req.ID)
 	}
@@ -64,17 +65,21 @@ func (h *wsConnHandler) handleSubscribe(ctx context.Context, conn *jsonrpc2.Conn
 	}
 
 	subscriptionType := v.GetStringBytes("subscription_type")
-	subscription, err := h.subscriptionService.Subscribe(h.remoteAddress, service.SubscriptionType(subscriptionType))
+	subscription, err := h.subscriptionService.Subscribe(h.remoteAddress, service.SubscriptionType(subscriptionType), conn)
 	if err != nil {
 		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidRequest, fmt.Sprintf("failed to subscribe: %v", err), conn, req.ID)
 		return
 	}
 
+	defer func() {
+		_ = h.subscriptionService.Unsubscribe(h.remoteAddress, subscription.ID)
+	}()
+
 	response := subscribeResponse{
 		SubscriptionID: subscription.ID,
 	}
 
-	if err = conn.Reply(ctx, req.ID, response); err != nil {
+	if err = conn.Notify(ctx, "subscribe", response); err != nil {
 		logger.Error("error replying to client", "err", err, "reqID", req.ID, "caller", h.remoteAddress)
 		return
 	}
@@ -113,8 +118,8 @@ func (h *wsConnHandler) handleUnsubscribe(ctx context.Context, conn *jsonrpc2.Co
 	logger.Info("client unsubscribed", "subscriptionID", string(subscriptionID), "caller", h.remoteAddress)
 }
 
-// handleSubmitIntentSolution handles the submitSolverOperation method
-func (h *wsConnHandler) handleSubmitIntentSolution(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
+// handleSubmitSolverOperation handles the submitSolverOperation method
+func (h *wsConnHandler) handleSubmitSolverOperation(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.Request) {
 	if req.Params == nil {
 		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidParams, "params value is missing", conn, req.ID)
 		return
@@ -127,12 +132,14 @@ func (h *wsConnHandler) handleSubmitIntentSolution(ctx context.Context, conn *js
 		return
 	}
 
-	operationID := v.GetStringBytes("operation_id")
-	operation := v.GetObject("operation")
+	intentID := v.GetStringBytes("intent_id")
+	intentSolution := v.GetObject("intent_solution")
 
-	err = h.intentService.SubmitIntentSolution(ctx, string(operationID), operation.MarshalTo(nil))
+	log.Debug("client submitted solver operation", "intent_id", string(intentID), "caller", h.remoteAddress)
+
+	err = h.intentService.SubmitIntentSolution(context.Background(), string(intentID), intentSolution.MarshalTo(nil))
 	if err != nil {
-		h.sendErrorMsg(ctx, jsonrpc2.CodeInternalError, fmt.Sprintf("failed to submit intent solution: %v", err), conn, req.ID)
+		h.sendErrorMsg(ctx, jsonrpc2.CodeInternalError, fmt.Sprintf("failed to submit solver opertaion: %v", err), conn, req.ID)
 	}
 }
 
@@ -152,7 +159,8 @@ func (h *wsConnHandler) sendErrorMsg(ctx context.Context, code int, message stri
 func (h *wsConnHandler) handlerSubscriptionMessages(ctx context.Context, conn *jsonrpc2.Conn, subscription *service.Subscription) {
 	for {
 		select {
-		case <-ctx.Done():
+		case <-conn.DisconnectNotify():
+			logger.Info("client disconnected", "caller", h.remoteAddress)
 			return
 		case msg, ok := <-subscription.NotificationChannel:
 			if !ok {

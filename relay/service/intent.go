@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -107,6 +108,12 @@ func (i *Intent) SubscribeToIntents(ctx context.Context) error {
 			return
 		}
 
+		rawIntent := make([]byte, base64.StdEncoding.DecodedLen(len(result.Intent)))
+		_, err = base64.StdEncoding.Decode(rawIntent, result.Intent)
+		if err == nil {
+			result.Intent = rawIntent
+		}
+
 		i.subscriptionManager.Notify(result)
 	})
 	if err != nil {
@@ -155,15 +162,22 @@ func (i *Intent) GetIntentSolutions(ctx context.Context, intentID string) ([]typ
 	for _, obj := range v.GetArray() {
 		intentSolution := obj.Get("intent_solution").GetStringBytes()
 
-		var solverOperation types.SolverOperationRaw
-		err = json.Unmarshal(intentSolution, &solverOperation) // TODO use var p fastjson.Parser
+		out := make([]byte, base64.StdEncoding.DecodedLen(len(intentSolution)))
+		n, err := base64.StdEncoding.Decode(out, intentSolution)
+		if err != nil {
+			logger.Error("failed to decode intent solution from base64", "error", err, "intent_solution", string(intentSolution))
+			continue
+		}
+
+		var solverOperation *types.SolverOperationRaw
+		err = json.Unmarshal(out[:n], &solverOperation) // TODO use var p fastjson.Parser
 		if err != nil {
 			logger.Error("failed to unmarshal intent solution into SolverOperationRaw", "error", err,
 				"intent_solution", string(intentSolution))
 			continue
 		}
 
-		result = append(result, solverOperation)
+		result = append(result, *solverOperation)
 	}
 
 	return result, nil

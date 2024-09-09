@@ -65,7 +65,7 @@ func (s *Server) buildRoutes() []route {
 func (s *Server) dAppRoutes() []route {
 	return []route{
 		{
-			name:        "SubmitIntent",
+			name:        "SubmitUserOperation",
 			method:      http.MethodPost,
 			pattern:     "/userOperation",
 			handlerFunc: s.userOperation,

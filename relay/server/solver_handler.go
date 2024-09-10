@@ -22,6 +22,13 @@ const (
 	microSecTimeFormat = "2006-01-02 15:04:05.000000"
 )
 
+var (
+	subscriptionTypeMissingErrMsg = "subscription_type value is missing"
+	subscriptionIDMissingErrMsg   = "subscription_id value is missing"
+	intentIDMissingErrMsg         = "intent_id value is missing"
+	intentSolutionMissingErrMsg   = "intent_solution value is missing"
+)
+
 type wsConnHandler struct {
 	remoteAddress       string
 	intentService       *service.Intent
@@ -65,6 +72,11 @@ func (h *wsConnHandler) handleSubscribe(ctx context.Context, conn *jsonrpc2.Conn
 	}
 
 	subscriptionType := v.GetStringBytes("subscription_type")
+	if len(subscriptionType) == 0 {
+		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidParams, subscriptionTypeMissingErrMsg, conn, req.ID)
+		return
+	}
+
 	subscription, err := h.subscriptionService.Subscribe(h.remoteAddress, service.SubscriptionType(subscriptionType), conn)
 	if err != nil {
 		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidRequest, fmt.Sprintf("failed to subscribe: %v", err), conn, req.ID)
@@ -104,6 +116,11 @@ func (h *wsConnHandler) handleUnsubscribe(ctx context.Context, conn *jsonrpc2.Co
 	}
 
 	subscriptionID := v.GetStringBytes("subscription_id")
+	if len(subscriptionID) == 0 {
+		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidParams, subscriptionIDMissingErrMsg, conn, req.ID)
+		return
+	}
+
 	err = h.subscriptionService.Unsubscribe(h.remoteAddress, string(subscriptionID))
 	if err != nil {
 		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidRequest, fmt.Sprintf("failed to unsubscribe: %v", err), conn, req.ID)
@@ -133,7 +150,15 @@ func (h *wsConnHandler) handleSubmitSolverOperation(ctx context.Context, conn *j
 	}
 
 	intentID := v.GetStringBytes("intent_id")
+	if intentID == nil {
+		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidParams, intentIDMissingErrMsg, conn, req.ID)
+		return
+	}
 	intentSolution := v.GetObject("intent_solution")
+	if intentSolution == nil {
+		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidParams, intentSolutionMissingErrMsg, conn, req.ID)
+		return
+	}
 
 	log.Debug("client submitted solver operation", "intent_id", string(intentID), "caller", h.remoteAddress)
 

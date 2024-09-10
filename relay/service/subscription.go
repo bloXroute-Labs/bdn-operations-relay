@@ -78,7 +78,6 @@ func (s *SubscriptionManager) Unsubscribe(remoteAddress, subscriptionID string) 
 	subs, _ := s.intentsSubscriptions.Get(remoteAddress)
 	for i := range subs {
 		if subs[i].ID == subscriptionID {
-			fmt.Println("closing channel")
 			close(subs[i].NotificationChannel)
 			subs = append(subs[:i], subs[i+1:]...)
 			exists = true

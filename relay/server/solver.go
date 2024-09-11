@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -39,5 +40,5 @@ func (s *Server) websocketSolver(w http.ResponseWriter, r *http.Request) {
 	}
 
 	asyncHandler := jsonrpc2.AsyncHandler(h)
-	_ = jsonrpc2.NewConn(r.Context(), jsonrpc2_ws.NewObjectStream(connection), asyncHandler)
+	_ = jsonrpc2.NewConn(context.Background(), jsonrpc2_ws.NewObjectStream(connection), asyncHandler)
 }

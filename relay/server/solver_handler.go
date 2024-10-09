@@ -154,6 +154,7 @@ func (h *wsConnHandler) handleSubmitSolverOperation(ctx context.Context, conn *j
 		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidParams, intentIDMissingErrMsg, conn, req.ID)
 		return
 	}
+
 	intentSolution := v.GetObject("intent_solution")
 	if intentSolution == nil {
 		h.sendErrorMsg(ctx, jsonrpc2.CodeInvalidParams, intentSolutionMissingErrMsg, conn, req.ID)

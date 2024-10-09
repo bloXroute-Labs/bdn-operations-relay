@@ -19,7 +19,7 @@ type route struct {
 
 func (s *Server) setupHandlers() *mux.Router {
 	router := mux.NewRouter().StrictSlash(true)
-	logger := func(inner http.Handler, name string) http.Handler {
+	log := func(inner http.Handler, name string) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 			w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -30,7 +30,7 @@ func (s *Server) setupHandlers() *mux.Router {
 
 	for _, r := range s.buildRoutes() {
 		var handler http.Handler = r.handlerFunc
-		handler = logger(handler, r.name)
+		handler = log(handler, r.name)
 
 		router.Methods(r.method).
 			Path(r.pattern).

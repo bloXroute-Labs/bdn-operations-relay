@@ -35,7 +35,7 @@ func init() {
 	}
 }
 
-func runRelay(cmd *cobra.Command, _ []string) error {
+func runRelay(_ *cobra.Command, _ []string) error {
 	cfg, err := config.Read(viper.GetViper())
 	if err != nil {
 		return err

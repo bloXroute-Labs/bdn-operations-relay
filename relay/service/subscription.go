@@ -76,6 +76,7 @@ func (s *SubscriptionManager) Subscribe(remoteAddress string, subscriptionType S
 func (s *SubscriptionManager) Unsubscribe(remoteAddress, subscriptionID string) error {
 	exists := false
 	subs, _ := s.intentsSubscriptions.Get(remoteAddress)
+
 	for i := range subs {
 		if subs[i].ID == subscriptionID {
 			close(subs[i].NotificationChannel)
@@ -114,6 +115,7 @@ func (s *SubscriptionManager) Notify(n interface{}) {
 				}
 			}
 		}
+
 		return true
 	})
 }

@@ -101,8 +101,7 @@ func (i *Intent) SubscribeToIntents(ctx context.Context) error {
 
 	params := &sdk.IntentsParams{
 		SolverPrivateKey: i.cfg.SolverPrivateKey,
-		// TODO uncomment when the BDN supports filtering by DApp address
-		// DappAddress: i.cfg.DAppAddress,
+		DappAddress:      i.cfg.DAppAddress,
 	}
 
 	err := i.client.OnIntents(ctx, params, func(ctx context.Context, err error, result *sdk.OnIntentsNotification) {
@@ -110,14 +109,9 @@ func (i *Intent) SubscribeToIntents(ctx context.Context) error {
 			logger.Error("error receiving intent", "error", err)
 			return
 		}
+
 		logger.Debug("received intent", "dapp_address", result.DappAddress, "sender_address", result.SenderAddress,
 			"intent_id", result.IntentID)
-
-		// TODO uncomment when the BDN supports filtering by DApp address
-		if result.DappAddress != i.cfg.DAppAddress {
-			logger.Debug("ignoring intent from different DApp address", "dapp_address", result.DappAddress)
-			return
-		}
 
 		rawIntent := make([]byte, base64.StdEncoding.DecodedLen(len(result.Intent)))
 		_, err = base64.StdEncoding.Decode(rawIntent, result.Intent)
@@ -213,6 +207,7 @@ func (i *Intent) SubscribeToSolutions(ctx context.Context) error {
 			logger.Error("error receiving intent solution", "error", err)
 			return
 		}
+
 		logger.Debug("received intent solution", "intent_id", result.IntentID)
 
 		item := i.cache.Get(result.IntentID)

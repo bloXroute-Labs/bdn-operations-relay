@@ -6,7 +6,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/sourcegraph/jsonrpc2"
-	jsonrpc2_ws "github.com/sourcegraph/jsonrpc2/websocket"
+	ws "github.com/sourcegraph/jsonrpc2/websocket"
 
 	"github.com/bloXroute-Labs/bdn-operations-relay/logger"
 )
@@ -40,5 +40,5 @@ func (s *Server) websocketSolver(w http.ResponseWriter, r *http.Request) {
 	}
 
 	asyncHandler := jsonrpc2.AsyncHandler(h)
-	_ = jsonrpc2.NewConn(context.Background(), jsonrpc2_ws.NewObjectStream(connection), asyncHandler)
+	_ = jsonrpc2.NewConn(context.Background(), ws.NewObjectStream(connection), asyncHandler)
 }
